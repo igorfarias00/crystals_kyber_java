@@ -100,10 +100,9 @@ public class Main {
 
         SecretKeyFactory factoryBob = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
 
-        // retirando somente a chave secreta do kyber encrypted, pois se utilzar ele havera um erro de padding
-        // pois o kyberEncrypted e kyberDecrypted possuiem atributos diferentes.
+
         KyberSecretKey bobSecretKyberKey = kyberEncrypted.getSecretKey();
-        KeySpec specBob = new PBEKeySpec(bobSecretKyberKey.getEncoded().toString().toCharArray(), salt.getBytes(), ITERATION_COUNT, KEY_LENGTH);
+        KeySpec specBob = new PBEKeySpec(Arrays.toString(bobSecretKey.getEncoded()).toCharArray(), salt.getBytes(), ITERATION_COUNT, KEY_LENGTH);
         SecretKey tmpBob = factoryBob.generateSecret(specBob);
         SecretKeySpec secretKeySpec = new SecretKeySpec(tmpBob.getEncoded(), "AES");
 
@@ -125,7 +124,7 @@ public class Main {
 
         SecretKeyFactory factoryAlice = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         KyberSecretKey aliceSecretKey = kyberDecrypted.getSecretKey();
-        KeySpec specAlice = new PBEKeySpec(aliceSecretKey.getEncoded().toString().toCharArray(), salt.getBytes(), ITERATION_COUNT, KEY_LENGTH);
+        KeySpec specAlice = new PBEKeySpec(Arrays.toString(aliceSecretKey.getEncoded()).toCharArray(), salt.getBytes(), ITERATION_COUNT, KEY_LENGTH);
         SecretKey tmpAlice = factoryAlice.generateSecret(specAlice);
         SecretKeySpec secretKeySpecAlice = new SecretKeySpec(tmpAlice.getEncoded(), "AES");
 
