@@ -82,6 +82,8 @@ public class Main {
 
         final var kyberDecrypted = aliceGeneratesKyberDecrypted(aliceKeyAgreement, kyberEncrypted.getCipherText());
 
+        System.out.println("\n # ---------------------------------------- #");
+
         System.out.println("ENCRYPTED SECRET KEY = " + Base64.getEncoder().encodeToString(kyberEncrypted.getSecretKey().getEncoded()));
         System.out.println("DECRYPTED SECRET KEY = " + Base64.getEncoder().encodeToString(kyberDecrypted.getSecretKey().getEncoded()));
 
@@ -95,8 +97,13 @@ public class Main {
         secureRandom.nextBytes(iv);
         IvParameterSpec ivspec = new IvParameterSpec(iv);
 
+
         SecretKeyFactory factoryBob = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec specBob = new PBEKeySpec(kyberEncrypted.getSecretKey().getEncoded().toString().toCharArray(), salt.getBytes(), ITERATION_COUNT, KEY_LENGTH);
+
+        // retirando somente a chave secreta do kyber encrypted, pois se utilzar ele havera um erro de padding
+        // pois o kyberEncrypted e kyberDecrypted possuiem atributos diferentes.
+        KyberSecretKey bobSecretKyberKey = kyberEncrypted.getSecretKey();
+        KeySpec specBob = new PBEKeySpec(bobSecretKyberKey.getEncoded().toString().toCharArray(), salt.getBytes(), ITERATION_COUNT, KEY_LENGTH);
         SecretKey tmpBob = factoryBob.generateSecret(specBob);
         SecretKeySpec secretKeySpec = new SecretKeySpec(tmpBob.getEncoded(), "AES");
 
@@ -108,6 +115,7 @@ public class Main {
         System.arraycopy(iv, 0, msgEncriptada, 0, iv.length);
         System.arraycopy(cipherText, 0, msgEncriptada, iv.length, cipherText.length);
 
+        System.out.println("\n #--------------------------------------------#");
 
         System.out.println("Msg encriptada= " + Base64.getEncoder().encodeToString(msgEncriptada));
 
@@ -116,7 +124,8 @@ public class Main {
         // decriptografando a mensagem
 
         SecretKeyFactory factoryAlice = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec specAlice = new PBEKeySpec(kyberEncrypted.getSecretKey().getEncoded().toString().toCharArray(), salt.getBytes(), ITERATION_COUNT, KEY_LENGTH);
+        KyberSecretKey aliceSecretKey = kyberDecrypted.getSecretKey();
+        KeySpec specAlice = new PBEKeySpec(aliceSecretKey.getEncoded().toString().toCharArray(), salt.getBytes(), ITERATION_COUNT, KEY_LENGTH);
         SecretKey tmpAlice = factoryAlice.generateSecret(specAlice);
         SecretKeySpec secretKeySpecAlice = new SecretKeySpec(tmpAlice.getEncoded(), "AES");
 
@@ -127,6 +136,8 @@ public class Main {
         System.arraycopy(msgEncriptada, 16, cifraText, 0, cifraText.length);
 
         String msgDescriptada = new String(cifra.doFinal(cifraText), "UTF-8");
+
+        System.out.println("\n # ----------------------------------- # ");
 
         System.out.println("\nMsg Limpa: \n" + msgDescriptada);
 
